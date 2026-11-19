@@ -1,0 +1,7 @@
+{
+  "input": "output/A01T_features.xlsx",
+  "top_n": 30,
+  "pca_variance_target": 0.9,
+  "random_seed": 42,
+  "pca_components": 13
+}

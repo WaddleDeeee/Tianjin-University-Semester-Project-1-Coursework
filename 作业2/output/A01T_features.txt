@@ -1,0 +1,37 @@
+脑电特征提取说明
+
+input: archive/A01T.mat
+
+sampling: 250 Hz；前 22 通道 EEG；排除 3 通道 EOG；MAT 的 X 已为 µV，GDF 经 MNE 从 V 转为 µV
+
+time_reference: trial 开始为 0 s（GDF 事件 768 / MAT trial）；提示在 2 s；不以提示为零点
+
+MAT_indexing: MAT trial 从 1 起始，读取时减 1；跳过无 trial 的校准 run；run_id 为原始 data 中的位置；onset_sample 为拼接运动想象 run 后的零起始索引；run_onset_sample 为原始 run 内的零起始索引
+
+preprocessing: 0–7 s trial 上四阶 Butterworth 1.0–40.0 Hz SOS 双向滤波；减去 [0,2) s 基线均值；取 [3.0,6.0) s
+
+artifact: 丢弃官方伪迹（GDF 1023 / MAT artifacts=1）、非有限数据、不完整 trial、平直通道及窗口峰峰值 > 200.0 µV 的 trial；阈值是可配置经验值；不做 ICA
+
+frequency: Welch：Hann 窗 1 s、50% 重叠、去常数趋势；PSD 梯形积分
+
+feature_counts: {'frequency': 88, 'spatial': 6, 'time': 88}
+
+matrix_shape: 273 trial × 182 特征；另有 7 列 trial/标签元数据
+
+retention: 输入 288；保留 273；丢弃 15
+
+class_counts: {'right_hand': 69, 'left_hand': 69, 'feet': 68, 'tongue': 67}
+
+label_mapping: 1=左手；2=右手；3=双脚；4=舌头
+
+feature_definitions: 时域每通道均值、总体方差、总体标准差、峰峰值，共 22×4=88；频域每通道 μ/β 绝对功率及相对功率，共 22×4=88；空间为 6 个 CSP 投影方差，总计 182 个特征
+
+sources: 本地输入文件见 input；数据定义 https://www.bbci.de/competition/IV/desc_2a.pdf ；MAT 数据格式 https://bnci-horizon-2020.eu/database/data-sets ；CSP https://mne.tools/stable/generated/mne.decoding.CSP.html
+
+missing_values: 非有限特征用该列中位数填补；共 0 个；整列缺失则报错
+
+outliers: 有限极端值不裁剪；statistics 中报告 1.5×IQR 异常数量，trial_audit 记录丢弃原因
+
+CSP: 四分类 CSP，Ledoit-Wolf 协方差正则化；导出投影方差；spatial_filters 保存对应滤波器
+
+classification: 当前 CSP/填补参数来自全部保留训练数据
